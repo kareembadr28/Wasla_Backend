@@ -13,7 +13,12 @@
             => await _userManager.CreateAsync(user, password);
         public async Task<ApplicationUser> GetUserByEmailAsync(string email)
             => await _userManager.FindByEmailAsync(email)!;
-  
+        public async Task<ApplicationUser> GetUserByIdAsync(string id)
+        {
+            return await _userManager.FindByIdAsync(id);
+        }
+
+
     }
 
 }

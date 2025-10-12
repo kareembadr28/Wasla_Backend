@@ -83,6 +83,16 @@ namespace Wasla_Backend.Controllers
                 return BadRequest(ResponseHelper.Fail("ChangePassFailed", lan, result.Errors));
             return Ok(ResponseHelper.Success("ChangePassSuccess", lan, result));
         }
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken(RefreshTokenDto model, string lan = "en")
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ResponseHelper.Fail("InvalidData", lan, ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
+            var response = await _userService.RefreshTokenAsync(model);
+            if (response == null)
+                return BadRequest(ResponseHelper.Fail("InvalidToken", lan));
+            return Ok(ResponseHelper.Success("TokenRefreshSuccess", lan, response));
+        }
 
     }
 }

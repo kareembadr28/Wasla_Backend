@@ -136,6 +136,16 @@
             {
                 ["en"] = "Failed to send verification code.",
                 ["ar"] = "فشل في إرسال رمز التحقق."
+            },
+            ["InvalidToken"] =new()
+            {
+                ["en"] = "Invalid refresh token.",
+                ["ar"] = "رمز التحديث غير صالح."
+            },
+            ["TokenRefreshSuccess"] = new()
+            {
+                ["en"] = "Token refreshed successfully.",
+                ["ar"] = "تم تحديث الرمز بنجاح."
             }
         };
 

@@ -12,13 +12,14 @@ namespace Wasla_Backend.Services.Implementation
         private readonly IUserRepository _userRepository;
         private readonly IEmailVerificationRepository _emailVerificationRepository;
         private readonly IRoleRepository _roleRepository;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly EmailSenderHelper _emailSender;
         private readonly IMapper _mapper;
         private readonly TokenHelper _TokenHelper;
         private readonly UserManager<ApplicationUser> _userManager;
 
 
-        public UserService(IUserFactory userFactory, IUserRepository userRepository, IEmailVerificationRepository emailVerificationRepository, IRoleRepository roleRepository, EmailSenderHelper emailSender, IMapper mapper, TokenHelper tokenHelper, UserManager<ApplicationUser> userManager)
+        public UserService(IUserFactory userFactory, IUserRepository userRepository, IEmailVerificationRepository emailVerificationRepository, IRoleRepository roleRepository, EmailSenderHelper emailSender, IMapper mapper, TokenHelper tokenHelper, UserManager<ApplicationUser> userManager,IRefreshTokenRepository refreshTokenRepository)
         {
             _userFactory = userFactory;
             _userRepository = userRepository;
@@ -28,6 +29,7 @@ namespace Wasla_Backend.Services.Implementation
             _mapper = mapper;
             _TokenHelper = tokenHelper;
             _userManager = userManager;
+            _refreshTokenRepository = refreshTokenRepository;
         }
 
 
@@ -37,10 +39,8 @@ namespace Wasla_Backend.Services.Implementation
             var user = await _userRepository.GetUserByEmailAsync(model.Email);
             if (user == null)
                 throw new NotFoundException("User not found.");
-            if (!user.IsVerified)
-                throw new BadRequestException("User is not verified.");
-            if (!user.IsApproved)
-                throw new BadRequestException("User is not approved by admin yet.");
+           
+            
             string verificationCode = new Random().Next(1000, 9999).ToString();
             await _emailSender.SendEmailAsync(
                         model.Email,
@@ -105,13 +105,26 @@ namespace Wasla_Backend.Services.Implementation
 
             var roles = await _roleRepository.GetUserRolesAsync(user);
             var token = _TokenHelper.GenerateToken(user, roles);
+            var refreshToken = _TokenHelper.GenerateRefreshToken();
 
             var loginResponse = new LoginResponse
             {
                 Token = token,
                 UserId = user.Id,
-                Role = roles.FirstOrDefault()
+                Role = roles.FirstOrDefault(),
+                RefreshToken = refreshToken
             };
+            var refreshtoken = new RefreshToken
+            {
+                Token = refreshToken,
+                UserId = user.Id,
+                ExpiresAt = DateTime.UtcNow.AddDays(7),
+                IsRevoked = false
+            };
+            await _refreshTokenRepository.AddAsync(refreshtoken);
+            await _refreshTokenRepository.SaveChangesAsync();
+
+
             return loginResponse;
 
 
@@ -146,6 +159,40 @@ namespace Wasla_Backend.Services.Implementation
             await _roleRepository.AddUserToRoleAsync(user, model.Role);
 
             return result;
+        }
+
+        public async Task<LoginResponse> RefreshTokenAsync(RefreshTokenDto model)
+        {
+           var refreshToken =await _refreshTokenRepository.GetByTokenAsync(model.RefreshToken);
+            if (refreshToken == null || refreshToken.IsRevoked || refreshToken.ExpiresAt < DateTime.UtcNow)
+                throw new BadRequestException("Invalid refresh token.");
+            var user = await _userRepository.GetUserByIdAsync(refreshToken.UserId);
+            if (user == null)
+                throw new NotFoundException("User not found.");
+            var roles = await _roleRepository.GetUserRolesAsync(user);
+            var token = _TokenHelper.GenerateToken(user, roles);
+            var newRefreshToken = _TokenHelper.GenerateRefreshToken();
+            refreshToken.IsRevoked = true;
+             _refreshTokenRepository.Update(refreshToken);
+            var newRefreshTokenEntity = new RefreshToken
+            {
+                Token = newRefreshToken,
+                UserId = user.Id,
+                ExpiresAt = DateTime.UtcNow.AddDays(7),
+                IsRevoked = false
+            };
+            await _refreshTokenRepository.AddAsync(newRefreshTokenEntity);
+            await _refreshTokenRepository.SaveChangesAsync();
+            var loginResponse = new LoginResponse
+            {
+                Token = token,
+                UserId = user.Id,
+                Role = roles.FirstOrDefault(),
+                RefreshToken = newRefreshToken
+            };
+            return loginResponse;
+
+
         }
 
 

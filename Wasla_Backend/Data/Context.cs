@@ -8,6 +8,7 @@
         public DbSet<Resident> Residents { get; set; }
         public DbSet<Restaurant> Restaurants { get; set; }
         public DbSet<EmailVerification> EmailVerifications { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         public Context(DbContextOptions<Context> options) : base(options) { }
         protected override void OnModelCreating(ModelBuilder builder)

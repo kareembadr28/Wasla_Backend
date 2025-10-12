@@ -32,6 +32,7 @@ namespace Wasla_Backend
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IRoleRepository, RoleRepository>();
             builder.Services.AddScoped<IEmailVerificationRepository, EmailVerificationRepository>();
+            builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             builder.Services.AddTransient<EmailSenderHelper>();
 
             #endregion
