@@ -32,18 +32,7 @@ namespace Wasla_Backend.Repositories.Implementation
 
         }
 
-        public async Task RevokeTokenAsync(string token)
-        {
-            var tokenEntity = await _context.RefreshTokens.FirstOrDefaultAsync(t => t.Token == token);
-            if (tokenEntity != null)
-            {
-                tokenEntity.IsRevoked = true;
-                _context.RefreshTokens.Update(tokenEntity);
-                await _context.SaveChangesAsync();
-            }
-
-            else throw new NotFoundException ("Refresh token not found");
-        }
+       
 
 
     }
