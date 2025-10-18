@@ -147,8 +147,7 @@ namespace Wasla_Backend.Services.Implementation
             {
                 Token = refreshToken,
                 UserId = user.Id,
-                ExpiresAt = DateTime.UtcNow.AddDays(7),
-                IsRevoked = false
+                ExpiresAt = DateTime.UtcNow.AddDays(7)
             };
 
             await _refreshTokenRepository.AddAsync(refreshtoken);
@@ -185,7 +184,7 @@ namespace Wasla_Backend.Services.Implementation
         public async Task<LoginResponse> RefreshTokenAsync(RefreshTokenDto model)
         {
             var refreshToken = await _refreshTokenRepository.GetByTokenAsync(model.RefreshToken);
-            if (refreshToken == null || refreshToken.IsRevoked || refreshToken.ExpiresAt < DateTime.UtcNow)
+            if (refreshToken == null || refreshToken.ExpiresAt < DateTime.UtcNow)
                 throw new BadRequestException(_localizer["InvalidRefreshToken"]);
 
             var user = await _userRepository.GetUserByIdAsync(refreshToken.UserId);
@@ -194,28 +193,18 @@ namespace Wasla_Backend.Services.Implementation
 
             var roles = await _roleRepository.GetUserRolesAsync(user);
             var token = _TokenHelper.GenerateToken(user, roles);
-            var newRefreshToken = _TokenHelper.GenerateRefreshToken();
 
-            refreshToken.IsRevoked = true;
-            _refreshTokenRepository.Update(refreshToken);
+            _refreshTokenRepository.Delete(refreshToken);
+           await _refreshTokenRepository.SaveChangesAsync();
 
-            var newRefreshTokenEntity = new RefreshToken
-            {
-                Token = newRefreshToken,
-                UserId = user.Id,
-                ExpiresAt = DateTime.UtcNow.AddDays(7),
-                IsRevoked = false
-            };
 
-            await _refreshTokenRepository.AddAsync(newRefreshTokenEntity);
-            await _refreshTokenRepository.SaveChangesAsync();
 
             return new LoginResponse
             {
                 Token = token,
                 UserId = user.Id,
                 Role = roles.FirstOrDefault(),
-                RefreshToken = newRefreshToken
+                RefreshToken = refreshToken.Token
             };
         }
     }
