@@ -1,5 +1,4 @@
-﻿
-namespace Wasla_Backend.Services.Implementation
+﻿namespace Wasla_Backend.Services.Implementation
 {
     public class UserService : IUserService
     {
@@ -12,7 +11,6 @@ namespace Wasla_Backend.Services.Implementation
         private readonly IMapper _mapper;
         private readonly TokenHelper _TokenHelper;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IStringLocalizer<UserService> _localizer;
 
         public UserService(
             IUserFactory userFactory,
@@ -23,8 +21,7 @@ namespace Wasla_Backend.Services.Implementation
             IMapper mapper,
             TokenHelper tokenHelper,
             UserManager<ApplicationUser> userManager,
-            IRefreshTokenRepository refreshTokenRepository,
-            IStringLocalizer<UserService> localizer
+            IRefreshTokenRepository refreshTokenRepository
         )
         {
             _userFactory = userFactory;
@@ -36,7 +33,6 @@ namespace Wasla_Backend.Services.Implementation
             _TokenHelper = tokenHelper;
             _userManager = userManager;
             _refreshTokenRepository = refreshTokenRepository;
-            _localizer = localizer;
         }
 
         public async Task<IdentityResult> VerifyEmailAsync(VerificationEmailDto model)
@@ -45,7 +41,7 @@ namespace Wasla_Backend.Services.Implementation
 
             var verification = await _emailVerificationRepository.GetByEmailAndCodeAsync(model.Email, model.VerificationCode);
             if (verification == null || verification.ExpiresAt < DateTime.UtcNow)
-                throw new BadRequestException(_localizer["InvalidOrExpiredCode"]);
+                throw new BadRequestException("InvalidOrExpiredCode");
 
             user.IsVerified = true;
             var result = await _userRepository.UpdateUserAsync(user);
@@ -60,7 +56,7 @@ namespace Wasla_Backend.Services.Implementation
         {
             var user = await _userRepository.GetUserByEmailAsync(model.Email);
             if (user == null)
-                throw new NotFoundException(_localizer["UserNotFound"]);
+                throw new NotFoundException("UserNotFound");
 
             string verificationCode = new Random().Next(1000, 9999).ToString();
             await _emailSender.SendEmailAsync(model.Email, "Verification Code", $"Your OTP is: <b>{verificationCode}</b>");
@@ -74,21 +70,19 @@ namespace Wasla_Backend.Services.Implementation
             user.IsApproved = true;
             user.IsVerified = true;
             await _userManager.UpdateAsync(user);
-
-
         }
 
         public async Task<IdentityResult> ForgetPasswordAsync(ForgetPasswordDto model)
         {
             var user = await _userRepository.GetUserByEmailAsync(model.Email);
             if (user == null)
-                throw new NotFoundException(_localizer["UserNotFound"]);
+                throw new NotFoundException("UserNotFound");
 
             if (!user.IsVerified)
-                throw new BadRequestException(_localizer["UserNotVerified"]);
+                throw new BadRequestException("UserNotVerified");
 
             if (!user.IsApproved)
-                throw new BadRequestException(_localizer["UserNotApproved"]);
+                throw new BadRequestException("UserNotApproved");
 
             var result = await _userManager.RemovePasswordAsync(user);
             if (!result.Succeeded)
@@ -103,13 +97,13 @@ namespace Wasla_Backend.Services.Implementation
         {
             var user = await _userRepository.GetUserByEmailAsync(model.Email);
             if (user == null)
-                throw new NotFoundException(_localizer["UserNotFound"]);
+                throw new NotFoundException("UserNotFound");
 
             if (!user.IsVerified)
-                throw new BadRequestException(_localizer["UserNotVerified"]);
+                throw new BadRequestException("UserNotVerified");
 
             if (!user.IsApproved)
-                throw new BadRequestException(_localizer["UserNotApproved"]);
+                throw new BadRequestException("UserNotApproved");
 
             var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
             return result;
@@ -119,17 +113,17 @@ namespace Wasla_Backend.Services.Implementation
         {
             var user = await _userRepository.GetUserByEmailAsync(model.Email);
             if (user == null)
-                throw new NotFoundException(_localizer["EmailNotFound"]);
+                throw new NotFoundException("EmailNotFound");
 
             if (!user.IsVerified)
-                throw new BadRequestException(_localizer["UserNotVerified"]);
+                throw new BadRequestException("UserNotVerified");
 
             var isPasswordValid = await _userManager.CheckPasswordAsync(user, model.Password);
             if (!user.IsApproved)
-                throw new BadRequestException(_localizer["UserNotApproved"]);
+                throw new BadRequestException("UserNotApproved");
 
             if (!isPasswordValid)
-                throw new BadRequestException(_localizer["IncorrectPassword"]);
+                throw new BadRequestException("IncorrectPassword");
 
             var roles = await _roleRepository.GetUserRolesAsync(user);
             var token = _TokenHelper.GenerateToken(user, roles);
@@ -160,14 +154,14 @@ namespace Wasla_Backend.Services.Implementation
         {
             var existingUser = await _userRepository.GetUserByEmailAsync(model.Email);
             if (existingUser != null)
-                throw new BadRequestException(_localizer["EmailExists"]);
+                throw new BadRequestException("EmailExists");
 
             var user = _userFactory.CreateUser(model.Role);
             _mapper.Map(model, user);
 
             var roles = await _roleRepository.GetRolesNameAsync();
             if (!roles.Contains(model.Role))
-                throw new NotFoundException(_localizer["RoleNotFound"]);
+                throw new NotFoundException("RoleNotFound");
 
             var result = await _userRepository.CreateUserAsync(user, model.Password);
             if (!result.Succeeded)
@@ -184,25 +178,22 @@ namespace Wasla_Backend.Services.Implementation
         public async Task<LoginResponse> RefreshTokenAsync(RefreshTokenDto model)
         {
             var refreshToken = await _refreshTokenRepository.GetByTokenAsync(model.RefreshToken);
-            if (refreshToken == null )
-                throw new BadRequestException(_localizer["InvalidRefreshToken"]);
+            if (refreshToken == null)
+                throw new BadRequestException("InvalidRefreshToken");
+
             if (refreshToken.ExpiresAt < DateTime.UtcNow)
             {
-
                 _refreshTokenRepository.Delete(refreshToken);
                 await _refreshTokenRepository.SaveChangesAsync();
-                throw new BadRequestException(_localizer["ExpiredRefreshToken"]);
+                throw new BadRequestException("ExpiredRefreshToken");
             }
 
             var user = await _userRepository.GetUserByIdAsync(refreshToken.UserId);
             if (user == null)
-                throw new NotFoundException(_localizer["UserNotFound"]);
+                throw new NotFoundException("UserNotFound");
 
             var roles = await _roleRepository.GetUserRolesAsync(user);
             var token = _TokenHelper.GenerateToken(user, roles);
-
-
-
 
             return new LoginResponse
             {

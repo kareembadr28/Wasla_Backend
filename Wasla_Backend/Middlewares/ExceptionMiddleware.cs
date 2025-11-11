@@ -34,7 +34,6 @@
             if (string.IsNullOrWhiteSpace(lan))
                 lan = "en";
 
-            string messageKey;
             HttpStatusCode statusCode;
 
             switch (ex)
@@ -57,7 +56,7 @@
                     break;
             }
 
-            var response = ResponseHelper.Fail(ex.Message, lan, ex.Message);
+            var response = ResponseHelper.Fail(ex.Message, lan, null);
 
             context.Response.StatusCode = (int)statusCode;
 
@@ -68,5 +67,6 @@
 
             await context.Response.WriteAsync(json);
         }
+
     }
 }

@@ -125,6 +125,11 @@
                 ["en"] = "No roles found.",
                 ["ar"] = "لم يتم العثور على أدوار."
             },
+            ["RoleNotFound"] = new()
+            {
+                ["en"] = "role no found.",
+                ["ar"] = "لم يتم العثور على أدوار."
+            },
             ["InvalidOrExpiredCode"] = new()
             {
                 ["en"] = "Invalid or expired verification code.",
