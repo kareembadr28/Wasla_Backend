@@ -12,7 +12,7 @@
                 "restaurantOwner" => new Restaurant(),
                 "gymOwner" => new Gym(),
                 "technician" => new Technician(),
-                _ => throw new NotFoundException($"Unsupported role: {role}")
+                _ => throw new NotFoundException($"RoleNotFound")
             };
         }
     }

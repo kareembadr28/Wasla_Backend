@@ -7,6 +7,7 @@ global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.IdentityModel.Tokens;
 global using Microsoft.Extensions.Localization;
 
+global using System.Text.RegularExpressions;
 global using System.Reflection;
 global using System.ComponentModel.DataAnnotations;
 global using System.ComponentModel.DataAnnotations.Schema;
@@ -43,6 +44,7 @@ global using Wasla_Backend.Helpers.File;
 global using Wasla_Backend.DTOs.DoctorDTO;
 global using Wasla_Backend.DTOs.ResidentDTOS;
 global using Wasla_Backend.DTOs.RoleDTOS;
+
 
 
 
