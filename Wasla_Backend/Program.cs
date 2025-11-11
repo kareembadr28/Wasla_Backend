@@ -36,7 +36,7 @@ namespace Wasla_Backend
 
             builder.Services.AddScoped<IUserFactory, UserFactory>();
 
-           builder.Services.AddAuthentication(options =>
+          builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
