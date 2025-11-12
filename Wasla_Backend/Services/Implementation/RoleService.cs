@@ -4,17 +4,15 @@
     {
         private readonly IRoleRepository _roleRepository;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly string _imagePath;
-
-        public RoleService(
+        
+        public RoleService
+            (
             IRoleRepository roleRepository,
-            UserManager<ApplicationUser> userManager,
-            IWebHostEnvironment webHostEnvironment
-        )
+            UserManager<ApplicationUser> userManager
+            )
         {
             _roleRepository = roleRepository;
             _userManager = userManager;
-            _imagePath = Path.Combine(webHostEnvironment.WebRootPath, FileSetting.ImagesPathRole.TrimStart('/'));
         }
 
         public async Task<IdentityResult> AddRoleAsync(AddRoleDto roleDto)
@@ -22,13 +20,11 @@
             if (await _roleRepository.RoleExistsAsync(roleDto.Value))
                 throw new BadRequestException("RoleAlreadyExists");
 
-            var image = await FileOperation.SaveFile(roleDto.Image, _imagePath);
-
+            
             var role = new ApplicationRole
             {
                 RoleName = roleDto.RoleName,
                 Name = roleDto.Value,
-                ImageUrl = image
             };
 
             return await _roleRepository.CreateRoleAsync(role);
@@ -52,7 +48,6 @@
             {
                 Id = rs.Id,
                 Value = rs.Name,
-                ImageName = rs.ImageUrl,
                 RoleName = rs.RoleName.GetText(lan)
             }).ToList();
 
