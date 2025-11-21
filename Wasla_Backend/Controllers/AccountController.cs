@@ -129,5 +129,13 @@
             await _userService.EditProfile(editProfileDto);
             return Ok(ResponseHelper.Success("ProfileEditSuccess", lan));
         }
+        [HttpGet("get-Profile")]
+        public async Task<IActionResult> GetProfile(string userId, string lan = "en")
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ResponseHelper.Fail("InvalidData", lan, ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
+            var response = await _userService.GetProfile(userId);
+            return Ok(ResponseHelper.Success("GetProfileSuccess", lan, response));
+        }
     }
 }

@@ -13,6 +13,7 @@ namespace Wasla_Backend.Services.Interfaces
         public Task<IdentityResult> VerifyEmailAsync(VerificationEmailDto model);
         public Task EditProfile(EditProfileDto editProfileDto);
         public Task approveAndVerify(string gmail);
+        public Task<ResponseProfileDto>GetProfile(string userId);
 
 
     }

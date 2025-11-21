@@ -244,6 +244,11 @@
             {
                 ["en"] = "Resident registration completed successfully",
                 ["ar"] = "تم إكمال تسجيل المقيم بنجاح"
+            },
+            ["GetProfileSuccess"] = new()
+            {
+                ["en"] = "Profile fetched successfully",
+                ["ar"] = "تم جلب الملف الشخصي بنجاح"
             }
 
         };

@@ -34,6 +34,8 @@
             _mapper = mapper;
             _TokenHelper = tokenHelper;
             _userManager = userManager;
+            Console.WriteLine("WWWROOT = " + webHostEnvironment.WebRootPath);
+
             _imagePath = Path.Combine(webHostEnvironment.WebRootPath, FileSetting.ImagesPathUser.TrimStart('/'));
             _refreshTokenRepository = refreshTokenRepository;
         }
@@ -228,6 +230,17 @@
             }
 
             await _userRepository.UpdateUserAsync(user);
+        }
+
+        public async Task<ResponseProfileDto> GetProfile(string userId)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+                throw new NotFoundException("UserNotFound");
+            var response = _mapper.Map<ResponseProfileDto>(user);
+            return response;
+
+
         }
     }
 }
